@@ -83,5 +83,65 @@ So, this is how the overall tree (hierarchial structure) looks like. We have the
 
 ![Tree based representation of Git](Tree_based_representation_of_Git.png)
 
-61,b6,d3,d7,d8 ->5 different files, which were already a part, apart from the folder structure of index.js
+61,b6,d3,d7,d8,25 -> 6 different git objects folder, which were already a part, apart from the folder structure mentioned in line 68
 
+Using the command `git cat-file -t <hash id>`, we can see the type of file it is (blob/tree).
+
+Our observations after making the folder structure:
+
+1.  Once we stage the changes, objects with intials 45,78 appear after staging the folder structure. These are both blobs, and have the contents "Hello World" and "Hello World from src", respectively.
+
+![Git screenshots after staging](Git_results_after_staging.png)
+
+But we don't see the tree objects, we'll see them after committing (in the next step).
+
+2. After committing, we see new objects with the initials 05,b5 and a new object with the id 61c4be94f663669f48c0f03837d5ad73b88b1c01.
+
+On exploring them, I found that the object with initials b5 corresponds to the root node of the entire project structure, and has blob pointers to the various images, README.md, dummy.txt and most importantly a tree pointer to the src folder.
+
+The object with initials 05 corresponds to the src folder, and has a blob pointer to the src/index.js file.
+
+The object with the id 61c4be94f663669f48c0f03837d5ad73b88b1c01 has type as 'commit'. Now this is a new discovery, let's talk more about the commit object.
+
+The commit object stores details such as, the author name, the email ID, commit message and a timestamp corresponding to the time when the commit was made.
+
+It also contains a tree pointer, which points to that directory whose changes have been recorded during the commit.
+
+Difference between author and committer (both author and committer are present in the commit object)
+
+In Git, the "author" is the person who created the changes in a commit, while the "committer" is the person who added the commit to the repository. They can be the same, but in collaboration or open source, they might differ. The author's info is set when committing, and committer's info is set when adding to the repository.
+
+Some other interesting observations about this commit object:
+
+1. The commit object (or any other object) is based upon the content of the file, we hash. Now, the contents of two commits can never be the same, as the timestamps for two different commits would always be different.
+
+2. The id for this object is same as the commit id, we can compare it from `git log`.
+
+![Git screenshots after committing](Git_results_after_committing.png)
+![Git commit object](Git_commit_object.png)
+
+```
+Let's also see what happens when there are several commits!!
+```
+
+We add a new file dummy2.txt and make a new commit with the object id: d48ceb6f0c3b3cdcaeaf802eccd30f7774e7ffc9
+
+When we look at the contents of this object, we see a field 'parent' as well, so each commit also stores the parent commit (which in our case, is the first commit)
+
+![Commit object storing parent commit](Commit_object_storing_parent_commit.png)
+
+Let's also look at some of the optimizations that Git does, when we push our code to remote, to efficiently transfer the changes.
+
+1. Delta Compression: Git uses delta compression to reduce the amount of data that needs to be transferred during a push. Instead of sending entire files, Git sends only the differences (or "deltas") between the versions of files that have changed. This minimizes the amount of data transmitted over the network.
+
+2. Pack Files: Git uses a mechanism called "pack files" to store objects more efficiently. It groups similar objects together and stores them as compressed packs. This helps reduce the overall storage size of the repository and makes transferring objects faster.
+
+Git does garbage collection whenever code is pushed to remote, we can also observe similar behaviour when we do `git gc`.
+
+So, the next time you see the message 'Delta compression' when pushing code, you know what's happening behind the scenes :)
+
+Also, observe that when we push the code to remote, the objects no longer remain in the .git folder, instead the packfiles remain
+
+We can list what all commit IDs are present in the packfiles by using  `git verify-pack -v <path to packfile>`.
+
+![Git verify pack](Git_verify_pack.png)
