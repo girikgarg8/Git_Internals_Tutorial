@@ -1,0 +1,1 @@
+Hello folks! This is Girik Garg. This is a sample file to check the hashing mechanism of Git. 
